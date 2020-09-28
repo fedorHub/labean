@@ -34,7 +34,8 @@ type task struct {
 	ID      string `json:"name"`
 	TurnOn  string `json:"on_command"`
 	TurnOff string `json:"off_command"`
-	Timeout uint16 `json:"timeout"`
+	// Timeout uint16 `json:"timeout"`
+	Timeout uint16 `json:"clientTTL"`
 }
 
 type taskResult struct {

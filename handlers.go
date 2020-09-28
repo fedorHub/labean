@@ -72,12 +72,12 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 
 	clientIP := r.URL.Query().Get("ip")
 	// TimeHandler := r.URL.Query().Get("ttl")
-	clientTTL := r.Header.Get("X-Upstream-01")
+	clientTTL := r.Header.Get("CF-ttl")
 	// fmt.Fprintf(w, "Host = %q\n", r.Host)
 	// fmt.Fprintf(w, "RemoteAddr= %q\n", r.RemoteAddr)
 	// type Header map[string][]string
 	if len(clientTTL) == 0 {
-		clientTTL = r.Header.Get("X-Upstream-01")
+		clientTTL = r.Header.Get("CF-ttl")
 		if env.config.TimeHandler != "" {
 			clientTTL = r.Header.Get(env.config.TimeHandler)
 			if clientTTL == "" {
