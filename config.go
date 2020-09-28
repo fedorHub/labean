@@ -34,6 +34,7 @@ import (
 type appConfig struct {
 	Listen       string `json:"listen"`
 	RealIPHeader string `json:"real_ip_header"`
+	TimeHandler  string `json:"ttl_timeout"`
 	ServerIP     string `json:"external_ip"`
 	TasksRaw     []task `json:"tasks"`
 	Tasks        map[string]*task
