@@ -70,17 +70,22 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 	preparedUrl := strings.TrimPrefix(strings.ToLower(r.URL.Path), env.config.UrlPrefix)
 	urlParts := strings.Split(preparedUrl, "/")
 
-	TimeHandler := r.URL.Query().Get("time")
-	if len(TimeHandler) == 0 {
-		TimeHandler = strings.Split(r.RemoteAddr, ":")[0]
+	clientIP := r.URL.Query().Get("ip")
+	// TimeHandler := r.URL.Query().Get("ttl")
+	clientTTL := r.Header.Get("X-Upstream-01")
+	// fmt.Fprintf(w, "Host = %q\n", r.Host)
+	// fmt.Fprintf(w, "RemoteAddr= %q\n", r.RemoteAddr)
+	// type Header map[string][]string
+	if len(clientTTL) == 0 {
+		clientTTL = r.Header.Get("X-Upstream-01")
 		if env.config.TimeHandler != "" {
-			if TimeHandler == "" {
+			clientTTL = r.Header.Get(env.config.TimeHandler)
+			if clientTTL == "" {
 				genericErr = errors.New("Empty real ttl header")
 				return
 			}
 		}
 	}
-	clientIP := r.URL.Query().Get("ip")
 	if len(clientIP) == 0 || env.config.ExplicitIP == false {
 		clientIP = strings.Split(r.RemoteAddr, ":")[0]
 		if env.config.RealIPHeader != "" {
@@ -102,13 +107,13 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 	currentTask := env.config.Tasks[taskName]
 	switch action {
 	case "on":
-		env.log.Info(fmt.Sprintf("Starting '%s' for %s, ttl %s", currentTask.ID, clientIP, TimeHandler))
+		env.log.Info(fmt.Sprintf("Starting '%s' for %s, ttl %s", currentTask.ID, clientIP, clientTTL))
 		result = currentTask.Start(env, clientIP)
 	case "off":
 		env.log.Info(fmt.Sprintf("Stopping '%s' for %s by request...", currentTask.ID, clientIP))
 		result = currentTask.Stop(env, clientIP)
 	default:
-		env.log.Info(fmt.Sprintf("No action specified, so starting '%s' for %s and ttl %s", currentTask.ID, clientIP, TimeHandler))
+		env.log.Info(fmt.Sprintf("No action specified, so starting '%s' for %s and ttl %s", currentTask.ID, clientIP, clientTTL))
 		result = currentTask.Start(env, clientIP)
 	}
 	if result.Retcode != 0 {
