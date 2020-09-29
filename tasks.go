@@ -85,7 +85,7 @@ func (c task) Start(env *state, ip string, TimeoutC string) *taskResult {
 	// result.Timeout = c.Timeout
 	result.Timeout = c.TimeoutC
 	result.Ip = ip
-	if result.Retcode == 0 && c.Timeout != 0 {
+	if result.Retcode == 0 && c.TimeoutC != 0 {
 		cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOff)
 		env.monitor.ScheduleTaskToStop(cmd, c.TimeoutC)
 	}
