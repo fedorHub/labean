@@ -80,7 +80,6 @@ func runTask(cmd string) taskResult {
 }
 
 func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
-	var outbuf, errbuf bytes.Buffer
 	cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOn)
 	result := runTask(cmd)
 	// result.Timeout = c.Timeout
@@ -88,7 +87,9 @@ func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
 	result.IP = ip
 	// Get Server IP
 	if c.GetIPComm != "" {
-		commandrun := exec.Command(c.GetIPComm)
+		var outbuf, errbuf bytes.Buffer
+		// commandrun := exec.Command(c.GetIPComm)
+		commandrun := exec.Command("/usr/sbin/srvip.sh")
 		commandrun.Stdout = &outbuf
 		commandrun.Stderr = &errbuf
 		err := commandrun.Run()
