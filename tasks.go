@@ -31,26 +31,27 @@ import (
 )
 
 type task struct {
-	ID      string `json:"name"`
-	TurnOn  string `json:"on_command"`
-	TurnOff string `json:"off_command"`
-	// imeout uint16 `json:"timeout"`
+	ID        string `json:"name"`
+	TurnOn    string `json:"on_command"`
+	TurnOff   string `json:"off_command"`
+	GetIPComm string `json:"get_server_ip"`
+	// Timeout uint16 `json:"timeout"`
 }
 
 type taskResult struct {
-	Command string `json:"commandLine"`
+	// Command string `json:"commandLine"`
 	Retcode int    `json:"returnCode"`
 	Err     string `json:"error,omitempty"`
 	StdErr  string `json:"stderr,omitempty"`
 	StdOut  string `json:"stdout,omitempty"`
 	Timeout uint16 `json:"timeoutInSeconds,omitempty"`
-	Ip      string `json:"clientIp"`
+	IP      string `json:"clientIp"`
+	Server  string `json:"server_ip"`
 }
 
 func prepareCommand(ip string, ServerIP string, cmd string) string {
 	s := strings.Replace(cmd, "{clientIP}", ip, -1)
 	s = strings.Replace(s, "{serverIP}", ServerIP, -1)
-	// ip, cmd
 	return s
 }
 
@@ -58,7 +59,7 @@ func runTask(cmd string) taskResult {
 	var outbuf, errbuf bytes.Buffer
 
 	var result taskResult
-	result.Command = cmd
+	// result.Command = cmd
 
 	args := strings.Fields(cmd)
 	command := exec.Command(args[0], args[1:]...)
@@ -71,7 +72,26 @@ func runTask(cmd string) taskResult {
 		result.Retcode = -1
 		result.Err = err.Error()
 	}
+	if exitError, ok := err.(*exec.ExitError); ok {
+		result.Retcode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
+	}
+	return result
+}
 
+func GetSrvIP(runcmd string) taskResult {
+	var outbuf, errbuf bytes.Buffer
+	var result taskResult
+	args := strings.Fields(runcmd)
+	command := exec.Command(args[0], args[1:]...)
+	command.Stdout = &outbuf
+	command.Stderr = &errbuf
+	err := command.Run()
+	result.StdErr = errbuf.String()
+	result.Server = outbuf.String()
+	if err != nil {
+		result.Retcode = -1
+		result.Err = err.Error()
+	}
 	if exitError, ok := err.(*exec.ExitError); ok {
 		result.Retcode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
 	}
@@ -83,7 +103,7 @@ func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
 	result := runTask(cmd)
 	// result.Timeout = c.Timeout
 	result.Timeout = TaskTimeout
-	result.Ip = ip
+	result.IP = ip
 	if result.Retcode == 0 && TaskTimeout != 0 {
 		cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOff)
 		env.monitor.ScheduleTaskToStop(cmd, TaskTimeout)
@@ -94,9 +114,14 @@ func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
 func (c task) Stop(env *state, ip string) *taskResult {
 	cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOff)
 	result := runTask(cmd)
-	result.Ip = ip
+	result.IP = ip
 	if result.Retcode == 0 {
 		env.monitor.CancelTask(cmd)
 	}
+	return &result
+}
+
+func (c task) GetSRV(env *state) *taskResult {
+	result := GetSrvIP(c.GetIPComm)
 	return &result
 }
