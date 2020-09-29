@@ -46,7 +46,7 @@ type taskResult struct {
 	StdOut  string `json:"stdout,omitempty"`
 	Timeout uint16 `json:"timeoutInSeconds,omitempty"`
 	IP      string `json:"clientIp"`
-	Server  string `json:"server_ip"`
+	Server  string `json:"ex_server_ip"`
 }
 
 func prepareCommand(ip string, ServerIP string, cmd string) string {
@@ -68,26 +68,6 @@ func runTask(cmd string) taskResult {
 	err := command.Run()
 	result.StdErr = errbuf.String()
 	result.StdOut = outbuf.String()
-	if err != nil {
-		result.Retcode = -1
-		result.Err = err.Error()
-	}
-	if exitError, ok := err.(*exec.ExitError); ok {
-		result.Retcode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
-	}
-	return result
-}
-
-func GetSrvIP(runcmd string) taskResult {
-	var outbuf, errbuf bytes.Buffer
-	var result taskResult
-	args := strings.Fields(runcmd)
-	command := exec.Command(args[0], args[1:]...)
-	command.Stdout = &outbuf
-	command.Stderr = &errbuf
-	err := command.Run()
-	result.StdErr = errbuf.String()
-	result.Server = outbuf.String()
 	if err != nil {
 		result.Retcode = -1
 		result.Err = err.Error()
