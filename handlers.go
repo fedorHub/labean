@@ -27,8 +27,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -71,11 +73,7 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 	urlParts := strings.Split(preparedUrl, "/")
 
 	clientIP := r.URL.Query().Get("ip")
-	// TimeHandler := r.URL.Query().Get("ttl")
 	clientTTL := r.Header.Get("CF-ttl")
-	// fmt.Fprintf(w, "Host = %q\n", r.Host)
-	// fmt.Fprintf(w, "RemoteAddr= %q\n", r.RemoteAddr)
-	// type Header map[string][]string
 	if len(clientTTL) == 0 {
 		clientTTL = r.Header.Get("CF-ttl")
 		if env.config.TimeHandler != "" {
@@ -102,19 +100,25 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 		return
 	}
 
+	tmp, err := strconv.ParseUint(clientTTL, 10, 16)
+	if err != nil {
+		log.Fatal(err)
+	}
+	timettl := uint16(tmp)
+
 	action := urlParts[2]
 	taskName := urlParts[1]
 	currentTask := env.config.Tasks[taskName]
 	switch action {
 	case "on":
 		env.log.Info(fmt.Sprintf("Starting '%s' for %s, ttl %s", currentTask.ID, clientIP, clientTTL))
-		result = currentTask.Start(env, clientIP, clientTTL)
+		result = currentTask.Start(env, clientIP, timettl)
 	case "off":
 		env.log.Info(fmt.Sprintf("Stopping '%s' for %s by request...", currentTask.ID, clientIP))
 		result = currentTask.Stop(env, clientIP)
 	default:
 		env.log.Info(fmt.Sprintf("No action specified, so starting '%s' for %s and ttl %s", currentTask.ID, clientIP, clientTTL))
-		result = currentTask.Start(env, clientIP, clientTTL)
+		result = currentTask.Start(env, clientIP, timettl)
 	}
 	if result.Retcode != 0 {
 		env.log.Err(fmt.Sprintf("Failed to execute task '%s': %s", currentTask.ID, result.Err))
