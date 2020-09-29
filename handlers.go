@@ -96,7 +96,7 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 			}
 		}
 	}
-// end clientIP
+	// end clientIP
 	if net.ParseIP(clientIP) == nil {
 		genericErr = errors.New("Malformed IP: " + clientIP)
 		return
@@ -108,13 +108,13 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 	switch action {
 	case "on":
 		env.log.Info(fmt.Sprintf("Starting '%s' for %s, ttl %s", currentTask.ID, clientIP, clientTTL))
-		result = currentTask.Start(env, clientIP)
+		result = currentTask.Start(env, clientIP, clientTTL)
 	case "off":
 		env.log.Info(fmt.Sprintf("Stopping '%s' for %s by request...", currentTask.ID, clientIP))
 		result = currentTask.Stop(env, clientIP)
 	default:
 		env.log.Info(fmt.Sprintf("No action specified, so starting '%s' for %s and ttl %s", currentTask.ID, clientIP, clientTTL))
-		result = currentTask.Start(env, clientIP)
+		result = currentTask.Start(env, clientIP, clientTTL)
 	}
 	if result.Retcode != 0 {
 		env.log.Err(fmt.Sprintf("Failed to execute task '%s': %s", currentTask.ID, result.Err))

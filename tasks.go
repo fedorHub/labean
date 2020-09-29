@@ -31,11 +31,11 @@ import (
 )
 
 type task struct {
-	ID      string `json:"name"`
-	TurnOn  string `json:"on_command"`
-	TurnOff string `json:"off_command"`
-	// Timeout uint16 `json:"timeout"`
-	Timeout uint16 `json:"clientTTL"`
+	ID       string `json:"name"`
+	TurnOn   string `json:"on_command"`
+	TurnOff  string `json:"off_command"`
+	Timeout  uint16 `json:"timeout"`
+	TimeoutC uint16 `json:"clientTTL"`
 }
 
 type taskResult struct {
@@ -51,6 +51,7 @@ type taskResult struct {
 func prepareCommand(ip string, ServerIP string, cmd string) string {
 	s := strings.Replace(cmd, "{clientIP}", ip, -1)
 	s = strings.Replace(s, "{serverIP}", ServerIP, -1)
+	// ip, cmd
 	return s
 }
 
@@ -78,14 +79,15 @@ func runTask(cmd string) taskResult {
 	return result
 }
 
-func (c task) Start(env *state, ip string) *taskResult {
+func (c task) Start(env *state, ip string, TimeoutC string) *taskResult {
 	cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOn)
 	result := runTask(cmd)
-	result.Timeout = c.Timeout
+	// result.Timeout = c.Timeout
+	result.Timeout = c.TimeoutC
 	result.Ip = ip
 	if result.Retcode == 0 && c.Timeout != 0 {
 		cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOff)
-		env.monitor.ScheduleTaskToStop(cmd, c.Timeout)
+		env.monitor.ScheduleTaskToStop(cmd, c.TimeoutC)
 	}
 	return &result
 }
