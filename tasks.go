@@ -88,8 +88,7 @@ func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
 	// Get Server IP
 	if c.GetIPComm != "" {
 		var outbuf, errbuf bytes.Buffer
-		// commandrun := exec.Command(c.GetIPComm)
-		commandrun := exec.Command("/usr/sbin/srvip.sh")
+		commandrun := exec.Command(c.GetIPComm)
 		commandrun.Stdout = &outbuf
 		commandrun.Stderr = &errbuf
 		err := commandrun.Run()
