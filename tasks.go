@@ -45,6 +45,7 @@ type taskResult struct {
 	StdErr  string `json:"stderr,omitempty"`
 	StdOut  string `json:"stdout,omitempty"`
 	Timeout uint16 `json:"timeoutInSeconds,omitempty"`
+	TimeRes string `json:"ttl_from_config"`
 	Ip      string `json:"clientIp"`
 }
 
@@ -76,6 +77,7 @@ func runTask(cmd string) taskResult {
 	if exitError, ok := err.(*exec.ExitError); ok {
 		result.Retcode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
 	}
+	result.TimeRes = "test line"
 	return result
 }
 
