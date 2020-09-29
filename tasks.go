@@ -35,17 +35,17 @@ type task struct {
 	TurnOn   string `json:"on_command"`
 	TurnOff  string `json:"off_command"`
 	Timeout  uint16 `json:"timeout"`
-	TimeoutC uint16 `json:"clientTTL"`
+	TimeoutC uint16 `json:"ttl_timeout"`
 }
 
 type taskResult struct {
-	Command  string `json:"commandLine"`
-	Retcode  int    `json:"returnCode"`
-	Err      string `json:"error,omitempty"`
-	StdErr   string `json:"stderr,omitempty"`
-	StdOut   string `json:"stdout,omitempty"`
-	TimeoutC uint16 `json:"timeoutInSeconds,omitempty"`
-	Ip       string `json:"clientIp"`
+	Command string `json:"commandLine"`
+	Retcode int    `json:"returnCode"`
+	Err     string `json:"error,omitempty"`
+	StdErr  string `json:"stderr,omitempty"`
+	StdOut  string `json:"stdout,omitempty"`
+	Timeout uint16 `json:"timeoutInSeconds,omitempty"`
+	Ip      string `json:"clientIp"`
 }
 
 func prepareCommand(ip string, ServerIP string, cmd string) string {
@@ -83,7 +83,7 @@ func (c task) Start(env *state, ip string, TimeoutC uint16) *taskResult {
 	cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOn)
 	result := runTask(cmd)
 	// result.Timeout = c.Timeout
-	result.TimeoutC = c.TimeoutC
+	result.Timeout = c.TimeoutC
 	result.Ip = ip
 	if result.Retcode == 0 && c.TimeoutC != 0 {
 		cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOff)
