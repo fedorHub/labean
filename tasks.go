@@ -45,7 +45,6 @@ type taskResult struct {
 	StdErr  string `json:"stderr,omitempty"`
 	StdOut  string `json:"stdout,omitempty"`
 	Timeout uint16 `json:"timeoutInSeconds,omitempty"`
-	TimeRes string `json:"ttl_from_config"`
 	Ip      string `json:"clientIp"`
 }
 
@@ -77,15 +76,14 @@ func runTask(cmd string) taskResult {
 	if exitError, ok := err.(*exec.ExitError); ok {
 		result.Retcode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
 	}
-	result.TimeRes = "test line"
 	return result
 }
 
-func (c task) Start(env *state, ip string, TimeoutC uint16) *taskResult {
+func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
 	cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOn)
 	result := runTask(cmd)
 	// result.Timeout = c.Timeout
-	result.Timeout = c.TimeoutC
+	result.Timeout = TaskTimeout
 	result.Ip = ip
 	if result.Retcode == 0 && c.TimeoutC != 0 {
 		cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOff)
