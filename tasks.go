@@ -40,13 +40,14 @@ type task struct {
 
 type taskResult struct {
 	// Command string `json:"commandLine"`
-	Retcode int    `json:"returnCode"`
-	Err     string `json:"error,omitempty"`
-	StdErr  string `json:"stderr,omitempty"`
-	StdOut  string `json:"stdout,omitempty"`
-	Timeout uint16 `json:"timeoutInSeconds,omitempty"`
-	IP      string `json:"clientIp"`
-	Server  string `json:"ex_server_ip"`
+	Retcode   int    `json:"returnCode"`
+	Err       string `json:"error,omitempty"`
+	StdErr    string `json:"stderr,omitempty"`
+	StdOut    string `json:"stdout,omitempty"`
+	Timeout   uint16 `json:"timeoutInSeconds,omitempty"`
+	IP        string `json:"clientIp"`
+	Server    string `json:"ex_server_ip"`
+	ServerRet int    `json:"returnIPCode"`
 }
 
 func prepareCommand(ip string, ServerIP string, cmd string) string {
@@ -86,19 +87,21 @@ func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
 	result.Timeout = TaskTimeout
 	result.IP = ip
 	// Get Server IP
-	args := strings.Fields(c.GetIPComm)
-	commandrun := exec.Command(args[0], args[1:]...)
-	commandrun.Stdout = &outbuf
-	commandrun.Stderr = &errbuf
-	err := commandrun.Run()
-	result.StdErr = errbuf.String()
-	result.Server = outbuf.String()
-	if err != nil {
-		result.Retcode = -1
-		result.Err = err.Error()
-	}
-	if exitError, ok := err.(*exec.ExitError); ok {
-		result.Retcode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
+	if c.GetIPComm != "" {
+		commandrun := exec.Command(c.GetIPComm)
+		commandrun.Stdout = &outbuf
+		commandrun.Stderr = &errbuf
+		err := commandrun.Run()
+		result.StdErr = errbuf.String()
+		result.Server = outbuf.String()
+		//
+		if err != nil {
+			result.ServerRet = -1
+			result.Err = err.Error()
+		}
+		if exitError, ok := err.(*exec.ExitError); ok {
+			result.ServerRet = exitError.Sys().(syscall.WaitStatus).ExitStatus()
+		}
 	}
 	// main procedure:
 	if result.Retcode == 0 && TaskTimeout != 0 {
