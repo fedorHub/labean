@@ -113,7 +113,6 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 	case "on":
 		env.log.Info(fmt.Sprintf("Starting '%s' for %s, ttl %s", currentTask.ID, clientIP, clientTTL))
 		result = currentTask.Start(env, clientIP, timettl)
-		result = currentTask.GetSRV(env)
 	case "off":
 		env.log.Info(fmt.Sprintf("Stopping '%s' for %s by request...", currentTask.ID, clientIP))
 		result = currentTask.Stop(env, clientIP)

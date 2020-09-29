@@ -99,11 +99,28 @@ func GetSrvIP(runcmd string) taskResult {
 }
 
 func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
+	var outbuf, errbuf bytes.Buffer
 	cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOn)
 	result := runTask(cmd)
 	// result.Timeout = c.Timeout
 	result.Timeout = TaskTimeout
 	result.IP = ip
+	// Get Server IP
+	args := strings.Fields(c.GetIPComm)
+	commandrun := exec.Command(args[0], args[1:]...)
+	commandrun.Stdout = &outbuf
+	commandrun.Stderr = &errbuf
+	err := commandrun.Run()
+	result.StdErr = errbuf.String()
+	result.Server = outbuf.String()
+	if err != nil {
+		result.Retcode = -1
+		result.Err = err.Error()
+	}
+	if exitError, ok := err.(*exec.ExitError); ok {
+		result.Retcode = exitError.Sys().(syscall.WaitStatus).ExitStatus()
+	}
+	// main procedure:
 	if result.Retcode == 0 && TaskTimeout != 0 {
 		cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOff)
 		env.monitor.ScheduleTaskToStop(cmd, TaskTimeout)
@@ -118,10 +135,5 @@ func (c task) Stop(env *state, ip string) *taskResult {
 	if result.Retcode == 0 {
 		env.monitor.CancelTask(cmd)
 	}
-	return &result
-}
-
-func (c task) GetSRV(env *state) *taskResult {
-	result := GetSrvIP(c.GetIPComm)
 	return &result
 }
