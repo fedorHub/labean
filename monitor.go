@@ -50,7 +50,7 @@ func newTaskMonitor() *taskMonitor {
 	return &monitor
 }
 
-func (m taskMonitor) ScheduleTaskToStop(cancelCmd string, timeout uint16) {
+func (m taskMonitor) ScheduleTaskToStop(cancelCmd string, timeout uint32) {
 	taskToStop := scheduledCancel{cancelCmd, time.Now(), time.Duration(timeout) * time.Second}
 	m.scheduleStop <- taskToStop
 }

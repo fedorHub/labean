@@ -100,11 +100,11 @@ func taskHandler(env *state, w http.ResponseWriter, r *http.Request) (result *ta
 		return
 	}
 
-	tmp, err := strconv.ParseUint(clientTTL, 10, 16)
+	tmp, err := strconv.ParseUint(clientTTL, 10, 32)
 	if err != nil {
 		log.Fatal(err)
 	}
-	timettl := uint16(tmp)
+	timettl := uint32(tmp)
 
 	action := urlParts[2]
 	taskName := urlParts[1]

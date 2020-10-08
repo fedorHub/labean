@@ -44,7 +44,7 @@ type taskResult struct {
 	Err       string `json:"error,omitempty"`
 	StdErr    string `json:"stderr,omitempty"`
 	StdOut    string `json:"stdout,omitempty"`
-	Timeout   uint16 `json:"timeoutInSeconds,omitempty"`
+	Timeout   uint32 `json:"timeoutInSeconds,omitempty"`
 	IP        string `json:"clientIp"`
 	Server    string `json:"ex_server_ip"`
 	ServerRet int    `json:"returnIPCode"`
@@ -79,7 +79,7 @@ func runTask(cmd string) taskResult {
 	return result
 }
 
-func (c task) Start(env *state, ip string, TaskTimeout uint16) *taskResult {
+func (c task) Start(env *state, ip string, TaskTimeout uint32) *taskResult {
 	cmd := prepareCommand(ip, env.config.ServerIP, c.TurnOn)
 	result := runTask(cmd)
 	// result.Timeout = c.Timeout
